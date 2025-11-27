@@ -41,6 +41,9 @@ class Game:
         self.game_state = "MEMORIZING"  # MEMORIZING, PLAYING, LEVEL_COMPLETE, GAME_OVER, GAME_COMPLETE
         self.tolerance_timer = TOLERANCE_TIME
         self.start_ticks = pygame.time.get_ticks()
+        self.wall_stop_timer = 0  # Timer para detener paredes al acertar
+        self.current_wall_speed = 0  # Velocidad actual de las paredes
+        
         
         # Iniciar primer nivel
         self.start_new_level()
@@ -60,7 +63,10 @@ class Game:
             self.particle_system.clear()
             
             # Configurar velocidad de paredes según el nivel
-            self.walls.set_speed(current_level.wall_speed)
+            # Configurar velocidad de paredes según el nivel
+            self.current_wall_speed = current_level.wall_speed
+            self.walls.set_speed(self.current_wall_speed)
+            
             
             # Configurar tiempo de tolerancia
             self.tolerance_timer = current_level.tolerance_time
@@ -129,10 +135,20 @@ class Game:
                             
                             # Actualizar estadísticas
                             is_correct = (event.unicode == expected_char)
-                            self.score_manager.update_stats(is_correct)
+                            if is_correct:
+                                self.score_manager.add_correct_character()
+                            else:
+                                self.score_manager.add_incorrect_character()
+                                # Aumentar velocidad ligeramente por error
+                                self.current_wall_speed += 0.3
+                                self.walls.set_speed(self.current_wall_speed)
                             
                             # Verificar si completó la frase
                             if self.phrase_manager.check_phrase():
+                                # Frase correcta: detener paredes por 2 segundos
+                                self.wall_stop_timer = 2000  # WALL_STOP_DURATION
+                                self.walls.stop_moving()
+                            
                                 self.score_manager.complete_level(self.level_manager.current_level)
                                 self.game_state = "LEVEL_COMPLETE"
     
@@ -160,11 +176,20 @@ class Game:
                 self.score_manager.start_typing()
         
         elif self.game_state == "PLAYING":
-            # Si los ojos estan abiertos, mover las paredes
-            if eyes_open:
-                self.walls.start_moving()
-            else:
+            # Actualizar timer de parada de paredes (después de completar frase)
+            if self.wall_stop_timer > 0:
+                self.wall_stop_timer -= 1000 / 60  # Restar ms por frame (asumiendo 60 FPS)
                 self.walls.stop_moving()
+            else:
+                # Lógica de movimiento según ojos
+                if eyes_open:
+                    # Ojos abiertos: velocidad normal (o penalizada por errores)
+                    self.walls.set_speed(self.current_wall_speed)
+                    self.walls.start_moving()
+                else:
+                    # Ojos cerrados: velocidad MÍNIMA (muy lenta)
+                    self.walls.set_speed(0.5)  # WALL_SPEED_MINIMAL
+                    self.walls.start_moving()
             
             self.walls.update()
             
@@ -182,6 +207,10 @@ class Game:
             if self.player.danger_level > 0.7 and eyes_open:
                 self.screen_shake.start(intensity=5, duration=5)
         
+        
+        # Actualizar animación del jugador
+        is_typing = len(self.phrase_manager.get_user_input()) > 0
+        self.player.update_animation(self.game_state, is_typing)
         # Actualizar sistemas visuales
         self.particle_system.update()
         self.screen_shake.update()

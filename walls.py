@@ -92,6 +92,14 @@ class WallManager:
         self.left_wall.set_speed(speed)
         self.right_wall.set_speed(speed)
     
+    def increase_speed(self, amount):
+        """
+        Aumenta la velocidad actual
+        """
+        self.current_speed += amount
+        self.left_wall.set_speed(self.current_speed)
+        self.right_wall.set_speed(self.current_speed)
+    
     def start_moving(self):
         """
         Inicia el movimiento de las paredes

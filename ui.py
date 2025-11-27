@@ -4,7 +4,8 @@ import numpy as np
 from config import (
     WINDOW_WIDTH, WINDOW_HEIGHT, WHITE, GREEN, RED, GRAY,
     CYAN, MAGENTA, YELLOW, PURPLE,
-    WEBCAM_X, WEBCAM_Y, WEBCAM_WIDTH, WEBCAM_HEIGHT
+    WEBCAM_X, WEBCAM_Y, WEBCAM_WIDTH, WEBCAM_HEIGHT,
+    FONT_SIZE, PHRASE_FONT_SIZE, INPUT_FONT_SIZE, TITLE_FONT_SIZE, HUD_FONT_SIZE
 )
 from effects import draw_glow_text
 
@@ -13,12 +14,12 @@ class UI:
     def __init__(self, screen):
         self.screen = screen
         pygame.font.init()
-        # Usar Arial para mejor legibilidad
-        self.font = pygame.font.SysFont('arial', 28, bold=False)
-        self.phrase_font = pygame.font.SysFont('arial', 42, bold=True)
-        self.input_font = pygame.font.SysFont('arial', 38, bold=False)
-        self.title_font = pygame.font.SysFont('arial', 80, bold=True)
-        self.hud_font = pygame.font.SysFont('arial', 24, bold=False)
+        # Usar Consolas para mejor legibilidad (monospace)
+        self.font = pygame.font.SysFont('consolas', FONT_SIZE, bold=False)
+        self.phrase_font = pygame.font.SysFont('consolas', PHRASE_FONT_SIZE, bold=True)
+        self.input_font = pygame.font.SysFont('consolas', INPUT_FONT_SIZE, bold=False)
+        self.title_font = pygame.font.SysFont('consolas', TITLE_FONT_SIZE, bold=True)
+        self.hud_font = pygame.font.SysFont('consolas', HUD_FONT_SIZE, bold=False)
     
     def draw_hud(self, level_number, score, combo, wpm):
         """
@@ -77,7 +78,7 @@ class UI:
             return
         
         # Calcular posición inicial para centrar el texto
-        total_width = len(user_input) * 25  # Ajustado para Arial
+        total_width = len(user_input) * 25  # Ajustado para Consolas
         start_x = (WINDOW_WIDTH - total_width) // 2
         y = WINDOW_HEIGHT - 100
         
