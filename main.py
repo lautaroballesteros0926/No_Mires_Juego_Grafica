@@ -12,6 +12,7 @@ from ui import UI
 from level_manager import LevelManager
 from score_manager import ScoreManager
 from effects import ParticleSystem, ScreenShake, ColorManager
+from floor import Floor
 
 
 class Game:
@@ -25,6 +26,7 @@ class Game:
         self.camera = Camera()
         self.player = Player()
         self.walls = WallManager()
+        self.floor = Floor()  # Inicializar suelo
         self.phrase_manager = PhraseManager()
         self.ui = UI(self.screen)
         
@@ -63,55 +65,56 @@ class Game:
             # Configurar tiempo de tolerancia
             self.tolerance_timer = current_level.tolerance_time
             
-            # Obtener frase según dificultad del nivel
-            self.current_phrase = self.phrase_manager.get_random_phrase(current_level.phrase_difficulty)
+            # Obtener nueva frase
+            difficulty = current_level.phrase_difficulty
+            # CORREGIDO: usar get_random_phrase y eliminar set_phrase
+            self.current_phrase = self.phrase_manager.get_random_phrase(difficulty)
             
-            # Reiniciar estado
-            self.game_state = "MEMORIZING"
+            # Resetear timer
             self.start_ticks = pygame.time.get_ticks()
-    
+            self.game_state = "MEMORIZING"
+        else:
+            self.game_state = "GAME_COMPLETE"
+
     def handle_events(self):
         """
-        Maneja los eventos de Pygame
+        Maneja los eventos de entrada
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+                self.camera.cap.release()
+                pygame.quit()
+                sys.exit()
             
-            elif event.type == pygame.KEYDOWN:
-                # Reiniciar con ESPACIO en estados finales
-                if event.key == pygame.K_SPACE:
-                    if self.game_state == "GAME_OVER":
-                        self.level_manager.reset()
-                        self.score_manager.reset_game()
-                        self.start_new_level()
-                    
-                    elif self.game_state == "LEVEL_COMPLETE":
-                        # Avanzar al siguiente nivel
-                        if self.level_manager.next_level():
-                            self.start_new_level()
-                        else:
-                            self.game_state = "GAME_COMPLETE"
-                    
-                    elif self.game_state == "GAME_COMPLETE":
-                        # Reiniciar todo el juego
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
+                    self.camera.cap.release()
+                    pygame.quit()
+                    sys.exit()
+                
+                # Reiniciar juego si terminó
+                if self.game_state in ["GAME_OVER", "GAME_COMPLETE"]:
+                    if event.key == pygame.K_SPACE:
                         self.level_manager.reset()
                         self.score_manager.reset_game()
                         self.start_new_level()
                 
-                # Durante el juego, capturar entrada de texto
+                # Continuar al siguiente nivel
+                elif self.game_state == "LEVEL_COMPLETE":
+                    if event.key == pygame.K_SPACE:
+                        if self.level_manager.next_level():
+                            self.start_new_level()
+                        else:
+                            self.game_state = "GAME_COMPLETE"
+                
+                # Input de escritura
                 elif self.game_state == "PLAYING":
-                    if event.key == pygame.K_RETURN:
-                        # Verificar la frase
-                        if self.phrase_manager.check_phrase():
-                            # Calcular puntuación del nivel
-                            level_score = self.score_manager.complete_level(
-                                self.level_manager.get_level_number()
-                            )
-                            self.game_state = "LEVEL_COMPLETE"
-                            self.walls.stop_moving()
+                    # Si los ojos están cerrados, detener movimiento de paredes temporalmente
+                    # (esto ya se maneja en update, pero aquí manejamos el input)
                     
-                    elif event.key == pygame.K_BACKSPACE:
+                    if event.key == pygame.K_BACKSPACE:
                         # Borrar ultimo carácter
                         self.phrase_manager.remove_character()
                     
@@ -122,12 +125,16 @@ class Game:
                             current_input = self.phrase_manager.get_user_input()
                             expected_char = self.current_phrase[len(current_input)] if len(current_input) < len(self.current_phrase) else None
                             
-                            if event.unicode == expected_char:
-                                self.score_manager.add_correct_character()
-                            else:
-                                self.score_manager.add_incorrect_character()
-                            
                             self.phrase_manager.add_character(event.unicode)
+                            
+                            # Actualizar estadísticas
+                            is_correct = (event.unicode == expected_char)
+                            self.score_manager.update_stats(is_correct)
+                            
+                            # Verificar si completó la frase
+                            if self.phrase_manager.check_phrase():
+                                self.score_manager.complete_level(self.level_manager.current_level)
+                                self.game_state = "LEVEL_COMPLETE"
     
     def update(self):
         """
@@ -141,15 +148,15 @@ class Game:
             self.score_manager.start_eyes_closed()
         else:
             self.score_manager.stop_eyes_closed()
-        
+            
         if self.game_state == "MEMORIZING":
-            # Cuenta regresiva de tolerancia
-            seconds = (pygame.time.get_ticks() - self.start_ticks) / 1000
-            self.tolerance_timer = self.level_manager.get_current_level().tolerance_time - seconds
+            # Cuenta regresiva
+            current_time = pygame.time.get_ticks()
+            elapsed = (current_time - self.start_ticks) / 1000
+            self.tolerance_timer = max(0, TOLERANCE_TIME - elapsed)
             
             if self.tolerance_timer <= 0:
                 self.game_state = "PLAYING"
-                self.tolerance_timer = 0
                 self.score_manager.start_typing()
         
         elif self.game_state == "PLAYING":
@@ -159,8 +166,11 @@ class Game:
             else:
                 self.walls.stop_moving()
             
-            # Actualizar paredes
             self.walls.update()
+            
+            # Verificar colisión
+            if self.walls.check_collision(self.player):
+                self.game_state = "GAME_OVER"
             
             # Actualizar nivel de peligro del jugador
             self.player.update_danger_level(self.walls.get_walls())
@@ -169,19 +179,13 @@ class Game:
             self.color_manager.set_danger_level(self.player.danger_level)
             
             # Screen shake si hay mucho peligro
-            if self.player.danger_level > 0.7 and not self.screen_shake.is_shaking():
-                intensity = int(self.player.danger_level * 15)
-                self.screen_shake.start(intensity, 8)
-            
-            # Verificar colisiones
-            if self.player.check_collision(self.walls.get_walls()):
-                self.game_state = "GAME_OVER"
-                self.walls.stop_moving()
-                self.screen_shake.start(20, 20)
+            if self.player.danger_level > 0.7 and eyes_open:
+                self.screen_shake.start(intensity=5, duration=5)
         
-        # Actualizar efectos visuales
+        # Actualizar sistemas visuales
         self.particle_system.update()
         self.screen_shake.update()
+        # self.color_manager.update()  # ELIMINADO: No existe este método
     
     def draw(self):
         """
@@ -196,6 +200,9 @@ class Game:
         # Fondo dinamico según peligro
         bg_color = self.color_manager.get_background_color()
         game_surface.fill(bg_color)
+        
+        # Dibujar suelo (antes que todo lo demás)
+        self.floor.draw(game_surface)
         
         # Dibujar elementos del juego
         wall_color = self.color_manager.get_wall_color()

@@ -4,7 +4,6 @@ import numpy as np
 from config import (
     WINDOW_WIDTH, WINDOW_HEIGHT, WHITE, GREEN, RED, GRAY,
     CYAN, MAGENTA, YELLOW, PURPLE,
-    FONT_SIZE, PHRASE_FONT_SIZE, INPUT_FONT_SIZE, TITLE_FONT_SIZE, HUD_FONT_SIZE,
     WEBCAM_X, WEBCAM_Y, WEBCAM_WIDTH, WEBCAM_HEIGHT
 )
 from effects import draw_glow_text
@@ -14,11 +13,12 @@ class UI:
     def __init__(self, screen):
         self.screen = screen
         pygame.font.init()
-        self.font = pygame.font.Font(None, FONT_SIZE)
-        self.phrase_font = pygame.font.Font(None, PHRASE_FONT_SIZE)
-        self.input_font = pygame.font.Font(None, INPUT_FONT_SIZE)
-        self.title_font = pygame.font.Font(None, TITLE_FONT_SIZE)
-        self.hud_font = pygame.font.Font(None, HUD_FONT_SIZE)
+        # Usar Arial para mejor legibilidad
+        self.font = pygame.font.SysFont('arial', 28, bold=False)
+        self.phrase_font = pygame.font.SysFont('arial', 42, bold=True)
+        self.input_font = pygame.font.SysFont('arial', 38, bold=False)
+        self.title_font = pygame.font.SysFont('arial', 80, bold=True)
+        self.hud_font = pygame.font.SysFont('arial', 24, bold=False)
     
     def draw_hud(self, level_number, score, combo, wpm):
         """
@@ -28,20 +28,20 @@ class UI:
         
         # Nivel
         level_text = f"NIVEL {level_number}"
-        draw_glow_text(self.screen, self.hud_font, level_text, (100, hud_y), CYAN, glow_size=2)
+        draw_glow_text(self.screen, self.hud_font, level_text, (100, hud_y), WHITE, glow_size=2)
         
         # Puntuación
         score_text = f"SCORE: {score}"
-        draw_glow_text(self.screen, self.hud_font, score_text, (WINDOW_WIDTH // 2, hud_y), YELLOW, glow_size=2)
+        draw_glow_text(self.screen, self.hud_font, score_text, (WINDOW_WIDTH // 2, hud_y), WHITE, glow_size=2)
         
         # Combo
         if combo > 0:
             combo_text = f"COMBO x{combo}"
-            draw_glow_text(self.screen, self.hud_font, combo_text, (WINDOW_WIDTH - 200, hud_y), MAGENTA, glow_size=2)
+            draw_glow_text(self.screen, self.hud_font, combo_text, (WINDOW_WIDTH - 200, hud_y), WHITE, glow_size=2)
         
         # WPM
         wpm_text = f"WPM: {wpm}"
-        draw_glow_text(self.screen, self.hud_font, wpm_text, (WINDOW_WIDTH - 80, hud_y), GREEN, glow_size=2)
+        draw_glow_text(self.screen, self.hud_font, wpm_text, (WINDOW_WIDTH - 80, hud_y), WHITE, glow_size=2)
     
     def draw_phrase(self, phrase, show=True):
         """
@@ -53,7 +53,7 @@ class UI:
                 self.phrase_font,
                 f'{phrase}',
                 (WINDOW_WIDTH // 2, 80),
-                CYAN,
+                WHITE,
                 glow_size=4
             )
     
@@ -77,14 +77,14 @@ class UI:
             return
         
         # Calcular posición inicial para centrar el texto
-        total_width = len(user_input) * 20  # Aproximado
+        total_width = len(user_input) * 25  # Ajustado para Arial
         start_x = (WINDOW_WIDTH - total_width) // 2
         y = WINDOW_HEIGHT - 100
         
-        # Dibujar cada carácter con su color
+        # Dibujar cada carácter con su color (blanco correcto, gris incorrecto)
         x_offset = start_x
         for char, is_correct in comparison:
-            color = GREEN if is_correct else RED
+            color = WHITE if is_correct else GRAY
             char_surface = self.input_font.render(char, True, color)
             char_rect = char_surface.get_rect(center=(x_offset, y))
             
@@ -103,7 +103,7 @@ class UI:
         Dibuja la cuenta regresiva durante el tiempo de tolerancia
         """
         seconds = int(time_left)
-        color = YELLOW if seconds > 2 else RED
+        color = WHITE
         
         draw_glow_text(
             self.screen,
@@ -119,7 +119,7 @@ class UI:
             self.phrase_font,
             '¡Memoriza la frase!',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2),
-            CYAN,
+            WHITE,
             glow_size=4
         )
     
@@ -132,7 +132,7 @@ class UI:
             self.title_font,
             '¡PERDISTE!',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50),
-            RED,
+            WHITE,
             glow_size=10
         )
         draw_glow_text(
@@ -140,7 +140,7 @@ class UI:
             self.font,
             'Presiona ESPACIO para reintentar',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 50),
-            WHITE,
+            GRAY,
             glow_size=3
         )
     
@@ -153,7 +153,7 @@ class UI:
             self.title_font,
             '¡CORRECTO!',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50),
-            GREEN,
+            WHITE,
             glow_size=10
         )
         draw_glow_text(
@@ -161,7 +161,7 @@ class UI:
             self.font,
             'Presiona ESPACIO para continuar',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 50),
-            WHITE,
+            GRAY,
             glow_size=3
         )
     
@@ -174,7 +174,7 @@ class UI:
             self.title_font,
             f'NIVEL {level_number} COMPLETADO',
             (WINDOW_WIDTH // 2, 150),
-            CYAN,
+            WHITE,
             glow_size=8
         )
         
@@ -183,12 +183,12 @@ class UI:
         line_height = 40
         
         stats = [
-            (f"WPM: {score_breakdown['wpm']}", YELLOW),
-            (f"Precision: {score_breakdown['accuracy']}%", GREEN),
-            (f"Combo Maximo: {score_breakdown['combo']}", MAGENTA),
-            (f"Tiempo Ojos Cerrados: {score_breakdown['eyes_closed_time']}s", CYAN),
-            (f"Puntos del Nivel: {score_breakdown['level_score']}", PURPLE),
-            (f"Puntuación Total: {score_breakdown['total_score']}", YELLOW),
+            (f"WPM: {score_breakdown['wpm']}", WHITE),
+            (f"Precision: {score_breakdown['accuracy']}%", WHITE),
+            (f"Combo Maximo: {score_breakdown['combo']}", WHITE),
+            (f"Tiempo Ojos Cerrados: {score_breakdown['eyes_closed_time']}s", WHITE),
+            (f"Puntos del Nivel: {score_breakdown['level_score']}", WHITE),
+            (f"Puntuación Total: {score_breakdown['total_score']}", WHITE),
         ]
         
         for text, color in stats:
@@ -208,7 +208,7 @@ class UI:
             self.font,
             'Presiona ESPACIO para continuar',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100),
-            WHITE,
+            GRAY,
             glow_size=3
         )
     
@@ -221,7 +221,7 @@ class UI:
             self.title_font,
             '¡JUEGO COMPLETADO!',
             (WINDOW_WIDTH // 2, 200),
-            YELLOW,
+            WHITE,
             glow_size=10
         )
         
@@ -230,7 +230,7 @@ class UI:
             self.phrase_font,
             f'Puntuación Final: {total_score}',
             (WINDOW_WIDTH // 2, 300),
-            CYAN,
+            WHITE,
             glow_size=5
         )
         
@@ -239,7 +239,7 @@ class UI:
             self.font,
             'Presiona ESPACIO para jugar de nuevo',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100),
-            WHITE,
+            GRAY,
             glow_size=3
         )
     
@@ -248,22 +248,26 @@ class UI:
         Dibuja el feed de la webcam en la esquina superior izquierda
         """
         if frame is not None:
-            # Convertir de BGR (OpenCV) a RGB (Pygame)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # Redimensionar si es necesario
-            frame = cv2.resize(frame, (WEBCAM_WIDTH, WEBCAM_HEIGHT))
-            
-            # Rotar para Pygame (OpenCV usa (height, width, channels))
-            frame = np.rot90(frame)
-            frame = pygame.surfarray.make_surface(frame)
-            
-            # Dibujar en la esquina superior izquierda
-            self.screen.blit(frame, (WEBCAM_X, WEBCAM_Y))
-            
-            # Dibujar solo el borde (sin cubrir el video)
-            border_rect = pygame.Rect(WEBCAM_X, WEBCAM_Y, WEBCAM_WIDTH, WEBCAM_HEIGHT)
-            pygame.draw.rect(self.screen, CYAN, border_rect, 3)  # Solo borde, grosor 3
+            try:
+                # Convertir de BGR (OpenCV) a RGB (Pygame)
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # Redimensionar si es necesario
+                frame_resized = cv2.resize(frame_rgb, (WEBCAM_WIDTH, WEBCAM_HEIGHT))
+                
+                # Rotar para Pygame (OpenCV usa (height, width, channels))
+                frame_rotated = np.rot90(frame_resized)
+                frame_surface = pygame.surfarray.make_surface(frame_rotated)
+                
+                # Dibujar en la esquina superior izquierda
+                self.screen.blit(frame_surface, (WEBCAM_X, WEBCAM_Y))
+                
+                # Dibujar solo el borde blanco
+                border_rect = pygame.Rect(WEBCAM_X, WEBCAM_Y, WEBCAM_WIDTH, WEBCAM_HEIGHT)
+                pygame.draw.rect(self.screen, WHITE, border_rect, 3)
+            except Exception as e:
+                # Si hay error, simplemente no mostrar la webcam
+                pass
     
     def draw_danger_indicator(self, danger_level):
         """
@@ -275,9 +279,9 @@ class UI:
             pulse = abs(math.sin(pygame.time.get_ticks() / 100))
             alpha = int(150 * pulse * danger_level)
             
-            # Crear overlay rojo
+            # Crear overlay blanco
             overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-            overlay.fill((255, 0, 0, alpha))
+            overlay.fill((255, 255, 255, alpha))
             self.screen.blit(overlay, (0, 0))
             
             # Texto de advertencia
@@ -287,7 +291,7 @@ class UI:
                     self.title_font,
                     '¡PELIGRO!',
                     (WINDOW_WIDTH // 2, 50),
-                    RED,
+                    WHITE,
                     glow_size=8
                 )
     

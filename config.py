@@ -10,27 +10,13 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 GRAY = (100, 100, 100)
 
-# Colores Neon/Cyberpunk
+# Colores Neon/Cyberpunk (aunque usamos B/N, algunos sistemas pueden requerirlos para evitar errores de importación)
 CYAN = (0, 255, 255)
 MAGENTA = (255, 0, 255)
 YELLOW = (255, 255, 0)
 PURPLE = (128, 0, 255)
 DARK_BLUE = (10, 10, 30)
 DANGER_RED = (80, 10, 10)
-
-# Jugador (cuadrado)
-PLAYER_SIZE = 50
-PLAYER_START_X = WINDOW_WIDTH // 2 - PLAYER_SIZE // 2
-PLAYER_START_Y = WINDOW_HEIGHT // 2 - PLAYER_SIZE // 2
-
-# Paredes
-WALL_WIDTH = 50
-WALL_SPEED = 2  # píxeles por frame cuando los ojos están abiertos (base, se ajusta por nivel)
-WALL_START_LEFT = 0
-WALL_START_RIGHT = WINDOW_WIDTH - WALL_WIDTH
-
-# Tiempo
-TOLERANCE_TIME = 4  # segundos para memorizar la frase (base, se ajusta por nivel)
 
 # Webcam
 WEBCAM_WIDTH = 320
@@ -40,6 +26,20 @@ WEBCAM_Y = 10
 
 # Mediapipe
 EYE_ASPECT_RATIO_THRESHOLD = 0.2  # umbral para detectar ojos cerrados
+
+# Jugador
+PLAYER_SIZE = 50
+PLAYER_START_X = WINDOW_WIDTH // 2
+PLAYER_START_Y = WINDOW_HEIGHT // 2
+
+# Paredes
+WALL_WIDTH = 30  # Reducido de 50 a 30 para paredes más delgadas
+WALL_SPEED = 2  # píxeles por frame cuando los ojos están abiertos (base, se ajusta por nivel)
+WALL_START_LEFT = 0
+WALL_START_RIGHT = WINDOW_WIDTH - WALL_WIDTH
+
+# Tiempo
+TOLERANCE_TIME = 4  # segundos para memorizar la frase (base, se ajusta por nivel)
 
 # Fuentes
 FONT_SIZE = 32
