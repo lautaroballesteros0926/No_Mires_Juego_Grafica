@@ -1,10 +1,5 @@
-# camera.py
-"""
-Gestión de la webcam y detección de ojos con Mediapipe
-"""
-
-import cv2
 import mediapipe as mp
+import cv2  
 import numpy as np
 from config import WEBCAM_WIDTH, WEBCAM_HEIGHT, EYE_ASPECT_RATIO_THRESHOLD
 
@@ -27,7 +22,7 @@ class Camera:
         self.eyes_open = False
         self.frame = None
         
-        # Índices de landmarks para los ojos (Mediapipe Face Mesh)
+        # Índices de landmarks para los ojos 
         # Ojo izquierdo: [362, 385, 387, 263, 373, 380]
         # Ojo derecho: [33, 160, 158, 133, 153, 144]
         self.LEFT_EYE = [362, 385, 387, 263, 373, 380]
@@ -35,7 +30,7 @@ class Camera:
     
     def calculate_eye_aspect_ratio(self, eye_landmarks):
         """
-        Calcula el Eye Aspect Ratio (EAR) para determinar si el ojo está abierto
+        Calcula el Eye Aspect Ratio  para determinar si el ojo esta abierto
         """
         # Calcular distancias verticales
         A = np.linalg.norm(eye_landmarks[1] - eye_landmarks[5])
@@ -50,8 +45,8 @@ class Camera:
     
     def detect_eyes(self):
         """
-        Detecta si los ojos están abiertos o cerrados
-        Retorna True si los ojos están abiertos
+        Detecta si los ojos estan abiertos o cerrados
+        Retorna True si los ojos estan abiertos
         """
         ret, frame = self.cap.read()
         if not ret:
@@ -93,7 +88,7 @@ class Camera:
             # Promedio de ambos ojos
             avg_ear = (left_ear + right_ear) / 2.0
             
-            # Determinar si los ojos están abiertos
+            # Determinar si los ojos estan abiertos
             self.eyes_open = avg_ear > EYE_ASPECT_RATIO_THRESHOLD
             
             # Dibujar indicador visual en el frame

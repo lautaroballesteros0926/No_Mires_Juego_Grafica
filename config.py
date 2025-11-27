@@ -1,19 +1,22 @@
-# config.py
-"""
-Configuración general del juego de mecanografía
-"""
-
 # Ventana
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FPS = 60
 
-# Colores
+# Colores básicos
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 GRAY = (100, 100, 100)
+
+# Colores Neon/Cyberpunk
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+YELLOW = (255, 255, 0)
+PURPLE = (128, 0, 255)
+DARK_BLUE = (10, 10, 30)
+DANGER_RED = (80, 10, 10)
 
 # Jugador (cuadrado)
 PLAYER_SIZE = 50
@@ -22,12 +25,12 @@ PLAYER_START_Y = WINDOW_HEIGHT // 2 - PLAYER_SIZE // 2
 
 # Paredes
 WALL_WIDTH = 50
-WALL_SPEED = 2  # píxeles por frame cuando los ojos están abiertos
+WALL_SPEED = 2  # píxeles por frame cuando los ojos están abiertos (base, se ajusta por nivel)
 WALL_START_LEFT = 0
 WALL_START_RIGHT = WINDOW_WIDTH - WALL_WIDTH
 
 # Tiempo
-TOLERANCE_TIME = 4  # segundos para memorizar la frase
+TOLERANCE_TIME = 4  # segundos para memorizar la frase (base, se ajusta por nivel)
 
 # Webcam
 WEBCAM_WIDTH = 320
@@ -42,22 +45,49 @@ EYE_ASPECT_RATIO_THRESHOLD = 0.2  # umbral para detectar ojos cerrados
 FONT_SIZE = 32
 PHRASE_FONT_SIZE = 36
 INPUT_FONT_SIZE = 32
+TITLE_FONT_SIZE = 64
+HUD_FONT_SIZE = 24
 
-# Frases de práctica
-PHRASES = [
+# Efectos visuales
+PARTICLE_COUNT = 3  # partículas por frame cuando las paredes se mueven
+SCREEN_SHAKE_INTENSITY = 8
+SCREEN_SHAKE_DURATION = 10
+GLOW_SIZE = 5
+
+# Frases por dificultad
+PHRASES_EASY = [
+    "Hola mundo",
+    "Buenos dias",
     "La práctica hace al maestro",
+    "Cada día es una nueva oportunidad",
+    "Mantén la calma y sigue adelante",
+]
+
+PHRASES_MEDIUM = [
     "El tiempo es oro y vuela rápido",
     "Aprender a escribir sin mirar es útil",
     "La constancia es la clave del éxito",
-    "Cada día es una nueva oportunidad",
     "La paciencia y la dedicación importan",
-    "Programar es resolver problemas creativamente",
-    "La tecnología avanza a pasos agigantados",
-    "Mantén la calma y sigue adelante",
     "El conocimiento es poder infinito",
     "Respirar profundo ayuda a concentrarse",
     "Los desafíos nos hacen más fuertes",
     "La música inspira la creatividad humana",
-    "Escribir correctamente requiere práctica diaria",
-    "El éxito llega con perseverancia constante"
 ]
+
+PHRASES_HARD = [
+    "Programar es resolver problemas creativamente",
+    "La tecnología avanza a pasos agigantados",
+    "Escribir correctamente requiere práctica diaria",
+    "El éxito llega con perseverancia constante",
+    "La determinación supera cualquier obstáculo difícil",
+    "El aprendizaje continuo es fundamental para crecer",
+    "La innovación surge de la curiosidad y experimentación",
+    "Dominar una habilidad requiere tiempo y dedicación absoluta",
+]
+
+# Diccionario de frases por dificultad
+PHRASES_BY_DIFFICULTY = {
+    'easy': PHRASES_EASY,
+    'medium': PHRASES_MEDIUM,
+    'hard': PHRASES_HARD
+}
