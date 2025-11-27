@@ -177,12 +177,12 @@ class UI:
             f'NIVEL {level_number} COMPLETADO',
             (WINDOW_WIDTH // 2, 150),
             WHITE,
-            glow_size=8
+            glow_size=4  # Reducido de 8 a 4
         )
         
         # Desglose de puntuación
-        y_offset = 250
-        line_height = 100
+        y_offset = 230  # Subido un poco
+        line_height = 50  # Reducido de 100 a 50 para evitar desbordamiento
         
         stats = [
             (f"WPM: {score_breakdown['wpm']}", WHITE),
@@ -196,11 +196,11 @@ class UI:
         for text, color in stats:
             draw_glow_text(
                 self.screen,
-                self.phrase_font,
+                self.font,  # Usar font normal (32) en lugar de phrase_font (36)
                 text,
                 (WINDOW_WIDTH // 2, y_offset),
                 color,
-                glow_size=3
+                glow_size=1  # Reducido de 3 a 1 para texto más nítido
             )
             y_offset += line_height
         
@@ -209,9 +209,9 @@ class UI:
             self.screen,
             self.font,
             'Presiona ESPACIO para continuar',
-            (WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100),
+            (WINDOW_WIDTH // 2, WINDOW_HEIGHT - 80),
             GRAY,
-            glow_size=3
+            glow_size=1  # Reducido de 3 a 1
         )
     
     def draw_game_complete(self, total_score):
@@ -224,7 +224,7 @@ class UI:
             '¡JUEGO COMPLETADO!',
             (WINDOW_WIDTH // 2, 200),
             WHITE,
-            glow_size=10
+            glow_size=4  # Reducido de 10 a 4
         )
         
         draw_glow_text(
@@ -233,7 +233,7 @@ class UI:
             f'Puntuación Final: {total_score}',
             (WINDOW_WIDTH // 2, 300),
             WHITE,
-            glow_size=5
+            glow_size=2  # Reducido de 5 a 2
         )
         
         draw_glow_text(
@@ -242,7 +242,7 @@ class UI:
             'Presiona ESPACIO para jugar de nuevo',
             (WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100),
             GRAY,
-            glow_size=3
+            glow_size=1  # Reducido de 3 a 1
         )
     
     def draw_webcam_feed(self, frame):
@@ -294,7 +294,7 @@ class UI:
                     '¡PELIGRO!',
                     (WINDOW_WIDTH // 2, 50),
                     WHITE,
-                    glow_size=8
+                    glow_size=4  # Reducido de 8 a 4 para mejor legibilidad
                 )
     
     def draw_instructions(self):
