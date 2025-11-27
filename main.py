@@ -17,33 +17,65 @@ from floor import Floor
 
 class Game:
     def __init__(self):
+        # Inicializar Pygame primero
         pygame.init()
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("No Mires - Typing Game")
         self.clock = pygame.time.Clock()
         
-        # Componentes del juego
-        self.camera = Camera()
-        self.player = Player()
-        self.walls = WallManager()
-        self.floor = Floor()  # Inicializar suelo
-        self.phrase_manager = PhraseManager()
+        # Crear UI temporal para mostrar pantalla de carga
         self.ui = UI(self.screen)
         
-        # Nuevos sistemas
+        # Mostrar pantalla de carga inicial
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(0)
+        pygame.display.flip()
+        
+        # Cargar componentes con progreso
+        # Cámara (30%)
+        self.camera = Camera()
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(30)
+        pygame.display.flip()
+        
+        # Jugador con sprites (50%)
+        self.player = Player()
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(50)
+        pygame.display.flip()
+        
+        # Paredes y suelo (70%)
+        self.walls = WallManager()
+        self.floor = Floor()
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(70)
+        pygame.display.flip()
+        
+        # Managers (85%)
+        self.phrase_manager = PhraseManager()
         self.level_manager = LevelManager()
         self.score_manager = ScoreManager()
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(85)
+        pygame.display.flip()
+        
+        # Efectos (100%)
         self.particle_system = ParticleSystem()
         self.screen_shake = ScreenShake()
         self.color_manager = ColorManager()
+        self.screen.fill((0, 0, 0))
+        self.ui.draw_loading(100)
+        pygame.display.flip()
+        
+        # Esperar un momento para que se vea el 100%
+        pygame.time.wait(500)
         
         # Estados del juego
-        self.game_state = "MEMORIZING"  # MEMORIZING, PLAYING, LEVEL_COMPLETE, GAME_OVER, GAME_COMPLETE
+        self.game_state = "MENU"  # Iniciar en pantalla de inicio
         self.tolerance_timer = TOLERANCE_TIME
         self.start_ticks = pygame.time.get_ticks()
-        self.wall_stop_timer = 0  # Timer para detener paredes al acertar
-        self.current_wall_speed = 0  # Velocidad actual de las paredes
-        
+        self.wall_stop_timer = 0
+        self.current_wall_speed = 0
         
         # Iniciar primer nivel
         self.start_new_level()
@@ -99,6 +131,11 @@ class Game:
                     self.camera.cap.release()
                     pygame.quit()
                     sys.exit()
+                
+                # Pantalla de inicio
+                if self.game_state == "MENU":
+                    if event.key == pygame.K_SPACE:
+                        self.start_new_level()
                 
                 # Reiniciar juego si terminó
                 if self.game_state in ["GAME_OVER", "GAME_COMPLETE"]:
@@ -259,7 +296,11 @@ class Game:
                 self.score_manager.calculate_wpm()
             )
         
-        if self.game_state == "MEMORIZING":
+        if self.game_state == "MENU":
+            # Pantalla de inicio
+            self.ui.draw_menu()
+        
+        elif self.game_state == "MEMORIZING":
             # Mostrar frase y cuenta regresiva
             self.ui.draw_phrase(self.current_phrase, show=True)
             self.ui.draw_countdown(self.tolerance_timer)

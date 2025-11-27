@@ -21,8 +21,8 @@ DANGER_RED = (80, 10, 10)
 # Webcam
 WEBCAM_WIDTH = 320
 WEBCAM_HEIGHT = 240
-WEBCAM_X = 700
-WEBCAM_Y = 10
+WEBCAM_X = 950
+WEBCAM_Y = 7
 
 # Mediapipe
 EYE_ASPECT_RATIO_THRESHOLD = 0.2  # umbral para detectar ojos cerrados
