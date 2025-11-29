@@ -1,5 +1,6 @@
 import pygame
 import sys
+import numpy as np
 from config import (
     WINDOW_WIDTH, WINDOW_HEIGHT, FPS,
     TOLERANCE_TIME
@@ -19,10 +20,23 @@ class Game:
     def __init__(self):
         # Inicializar Pygame primero
         pygame.init()
+        pygame.mixer.init()  # Inicializar mixer para sonidos
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("No Mires - Typing Game")
         self.clock = pygame.time.Clock()
-        
+
+        # Generar sonidos
+        self.error_sound = self.generate_error_sound()
+        self.uppercase_sound = self.generate_uppercase_sound()
+        self.lowercase_sound = self.generate_lowercase_sound()
+
+        # Cargar sonido de completar frase
+        try:
+            self.complete_sound = pygame.mixer.Sound("Sonidos/myinstants.mp3")
+        except Exception as e:
+            print(f"No se pudo cargar el sonido de completar: {e}")
+            self.complete_sound = None
+
         # Crear UI temporal para mostrar pantalla de carga
         self.ui = UI(self.screen)
         
@@ -79,9 +93,104 @@ class Game:
         
         # Iniciar primer nivel
         self.start_new_level()
-        
+
         self.running = True
-    
+
+    def generate_error_sound(self):
+        """
+        Genera un sonido de error sintético (beep corto)
+        """
+        sample_rate = 22050
+        duration = 0.1  # 100ms
+        frequency = 400  # Hz - tono grave para error
+
+        # Generar onda cuadrada para un sonido más "duro"
+        samples = int(sample_rate * duration)
+        wave = np.zeros((samples, 2), dtype=np.int16)
+
+        for i in range(samples):
+            # Onda cuadrada
+            value = 0.3 if (i // (sample_rate // frequency // 2)) % 2 == 0 else -0.3
+            # Fade out para evitar clic al final
+            fade = 1.0 - (i / samples) * 0.7
+            sample_value = int(value * 32767 * fade)
+            wave[i] = [sample_value, sample_value]  # Stereo
+
+        sound_array = pygame.sndarray.make_sound(wave)
+        return sound_array
+
+    def generate_lowercase_sound(self):
+        """
+        Genera sonido para minúsculas (tono medio-bajo, suave)
+        """
+        sample_rate = 22050
+        duration = 0.06  # 60ms - corto
+
+        # Tono medio-bajo con armónico
+        freq1 = 440  # La (tono de referencia)
+        freq2 = 550  # Do# (tercera menor)
+
+        samples = int(sample_rate * duration)
+        wave = np.zeros((samples, 2), dtype=np.int16)
+
+        for i in range(samples):
+            t = i / sample_rate
+            # Onda senoidal pura para sonido claro
+            value1 = np.sin(2 * np.pi * freq1 * t) * 0.12
+            value2 = np.sin(2 * np.pi * freq2 * t) * 0.06
+            value = value1 + value2
+
+            # Envelope suave
+            if i < samples * 0.15:
+                envelope = i / (samples * 0.15)
+            elif i > samples * 0.6:
+                envelope = 1.0 - ((i - samples * 0.6) / (samples * 0.4))
+            else:
+                envelope = 1.0
+
+            sample_value = int(value * 32767 * envelope)
+            wave[i] = [sample_value, sample_value]
+
+        sound_array = pygame.sndarray.make_sound(wave)
+        return sound_array
+
+    def generate_uppercase_sound(self):
+        """
+        Genera sonido para mayúsculas (tono alto, brillante, distintivo)
+        """
+        sample_rate = 22050
+        duration = 0.07  # 70ms
+
+        # Tonos más altos para mayúsculas (más "brillante")
+        freq1 = 880  # La una octava arriba
+        freq2 = 1047  # Do una octava arriba
+        freq3 = 1319  # Mi (añade brillo)
+
+        samples = int(sample_rate * duration)
+        wave = np.zeros((samples, 2), dtype=np.int16)
+
+        for i in range(samples):
+            t = i / sample_rate
+            # Tres frecuencias para sonido más complejo y distintivo
+            value1 = np.sin(2 * np.pi * freq1 * t) * 0.10
+            value2 = np.sin(2 * np.pi * freq2 * t) * 0.08
+            value3 = np.sin(2 * np.pi * freq3 * t) * 0.05  # Armónico brillante
+            value = value1 + value2 + value3
+
+            # Envelope con ataque rápido para sonido "punchy"
+            if i < samples * 0.05:
+                envelope = i / (samples * 0.05)
+            elif i > samples * 0.65:
+                envelope = 1.0 - ((i - samples * 0.65) / (samples * 0.35))
+            else:
+                envelope = 1.0
+
+            sample_value = int(value * 32767 * envelope)
+            wave[i] = [sample_value, sample_value]
+
+        sound_array = pygame.sndarray.make_sound(wave)
+        return sound_array
+
     def start_new_level(self):
         """
         Inicia un nuevo nivel
@@ -160,10 +269,19 @@ class Game:
                     if event.key == pygame.K_BACKSPACE:
                         # Borrar ultimo carácter
                         self.phrase_manager.remove_character()
-                    
+
+                    # Ignorar teclas especiales (modificadores)
+                    elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT,
+                                      pygame.K_LCTRL, pygame.K_RCTRL,
+                                      pygame.K_LALT, pygame.K_RALT,
+                                      pygame.K_CAPSLOCK, pygame.K_NUMLOCK,
+                                      pygame.K_SCROLLOCK, pygame.K_TAB,
+                                      pygame.K_ESCAPE]:
+                        pass  # No hacer nada para teclas modificadoras
+
                     else:
                         # Añadir caracter si es valido
-                        if event.unicode.isprintable():
+                        if event.unicode and event.unicode.isprintable():
                             # Verificar si el caracter es correcto
                             current_input = self.phrase_manager.get_user_input()
                             expected_char = self.current_phrase[len(current_input)] if len(current_input) < len(self.current_phrase) else None
@@ -174,18 +292,25 @@ class Game:
                             is_correct = (event.unicode == expected_char)
                             if is_correct:
                                 self.score_manager.add_correct_character()
+                                # No se reproduce sonido para caracteres correctos
                             else:
                                 self.score_manager.add_incorrect_character()
+                                # Reproducir sonido de error
+                                self.error_sound.play()
                                 # Aumentar velocidad ligeramente por error
                                 self.current_wall_speed += 0.3
                                 self.walls.set_speed(self.current_wall_speed)
                             
                             # Verificar si completó la frase
                             if self.phrase_manager.check_phrase():
+                                # Reproducir sonido de completar frase
+                                if self.complete_sound:
+                                    self.complete_sound.play()
+
                                 # Frase correcta: detener paredes por 2 segundos
                                 self.wall_stop_timer = 2000  # WALL_STOP_DURATION
                                 self.walls.stop_moving()
-                            
+
                                 self.score_manager.complete_level(self.level_manager.current_level)
                                 self.game_state = "LEVEL_COMPLETE"
     
